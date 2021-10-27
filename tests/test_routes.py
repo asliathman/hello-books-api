@@ -57,7 +57,7 @@ def test_get_all_books(client, two_saved_books):
         }
     ]
 
-def test_add_book(client, two_saved_books):
+def test_add_book(client):
     #ACT
     response = client.post("/books", json={"title": "BOOK 3", "description": "DESCRIPTION 3"})
     response_body = response.get_json()
