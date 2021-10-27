@@ -32,13 +32,13 @@ def handle_books():
         db.session.add(new_book)
         db.session.commit()
 
-        return make_response(f"Book {new_book.title} successfully created", 201)
+        return jsonify(f"{new_book.title} successfully added"), 201
 
 @books_bp.route("/<book_id>", methods=["GET", "PUT", "DELETE"])
 def handle_book(book_id):
     book = Book.query.get(book_id)
     if book is None:
-            return make_response(f"Error: Book #{book_id} not found", 404)
+            return jsonify(f"Error: Book #{book_id} not found"), 404
 
     if request.method == "GET":
         return {
