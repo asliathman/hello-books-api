@@ -8,15 +8,22 @@ books_bp = Blueprint("books", __name__, url_prefix="/books")
 @books_bp.route("", methods=["GET", "POST"])
 def handle_books():
     if request.method == "GET":
-        books = Book.query.all()
+        title = request.args.get("title")
+        if title:
+            books = Book.query.filter_by(title=title)
+        else:
+            books = Book.query.all()
+        
         books_response = []
         for book in books:
+            #way to refactor: create a helper function create dict so this dict stuff doesn't have to live here using setattrb()
             books_response.append({
                 "id": book.id,
                 "title": book.title,
                 "description": book.description
             })
         return jsonify(books_response)
+        
     elif request.method == "POST":
         request_body = request.get_json()
         new_book = Book(title=request_body["title"],
@@ -27,16 +34,34 @@ def handle_books():
 
         return make_response(f"Book {new_book.title} successfully created", 201)
 
-@books_bp.route("/<book_id>", methods=["GET"])
+@books_bp.route("/<book_id>", methods=["GET", "PUT", "DELETE"])
 def handle_book(book_id):
     book = Book.query.get(book_id)
+    if book is None:
+            return make_response(f"Error: Book #{book_id} not found", 404)
 
-    return {
-        "id": book.id,
-        "title": book.title,
-        "description": book.description
-    }
+    if request.method == "GET":
+        return {
+            "id": book.id,
+            "title": book.title,
+            "description": book.description
+        }
+    elif request.method == "PUT":
+        form_data = request.get_json()
 
+        book.title = form_data["title"]
+        book.description = form_data["description"]
+
+        db.session.commit()
+
+        return make_response(f"Book #{book.id} successfully updated")
+    elif request.method == "DELETE":
+        db.session.delete(book)
+        db.session.commit()
+
+        return make_response(f"Book #{book.id} successfully deleted")
+
+    
 #ORIGINAL HELLO-BOOKS
 # from flask import Blueprint, jsonify
 
